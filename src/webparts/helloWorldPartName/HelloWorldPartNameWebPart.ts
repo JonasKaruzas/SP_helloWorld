@@ -10,6 +10,14 @@ import { escape } from '@microsoft/sp-lodash-subset';
 import styles from './HelloWorldPartNameWebPart.module.scss';
 import * as strings from 'HelloWorldPartNameWebPartStrings';
 
+import { SPFx, spfi } from "@pnp/sp";
+import "@pnp/sp/webs";
+import "@pnp/sp/lists";
+
+
+
+
+
 export interface IHelloWorldPartNameWebPartProps {
   description: string;
 }
@@ -18,40 +26,71 @@ export default class HelloWorldPartNameWebPart extends BaseClientSideWebPart<IHe
 
   private _isDarkTheme: boolean = false;
   private _environmentMessage: string = '';
-
+  
+  
   public render(): void {
+
     this.domElement.innerHTML = `
     <section class="${styles.helloWorldPartName} ${!!this.context.sdks.microsoftTeams ? styles.teams : ''}">
       <div class="${styles.welcome}">
         <img alt="" src="${this._isDarkTheme ? require('./assets/welcome-dark.png') : require('./assets/welcome-light.png')}" class="${styles.welcomeImage}" />
         <h2>Well done, ${escape(this.context.pageContext.user.displayName)}!</h2>
         <div>${this._environmentMessage}</div>
-        <div>Web part property value: <strong>${escape(this.properties.description)}</strong></div>
       </div>
       <div>
         <h3>Welcome to SharePoint Framework!</h3>
-        <p>
-        The SharePoint Framework (SPFx) is a extensibility model for Microsoft Viva, Microsoft Teams and SharePoint. It's the easiest way to extend Microsoft 365 with automatic Single Sign On, automatic hosting and industry standard tooling.
-        </p>
-        <h4>Learn more about SPFx development:</h4>
-          <ul class="${styles.links}">
-            <li><a href="https://aka.ms/spfx" target="_blank">SharePoint Framework Overview</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-graph" target="_blank">Use Microsoft Graph in your solution</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-teams" target="_blank">Build for Microsoft Teams using SharePoint Framework</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-viva" target="_blank">Build for Microsoft Viva Connections using SharePoint Framework</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-store" target="_blank">Publish SharePoint Framework applications to the marketplace</a></li>
-            <li><a href="https://aka.ms/spfx-yeoman-api" target="_blank">SharePoint Framework API reference</a></li>
-            <li><a href="https://aka.ms/m365pnp" target="_blank">Microsoft 365 Developer Community</a></li>
-          </ul>
+        <div>Web part description: <strong>${escape(this.properties.description)}</strong></div>
+        <div>Loading from: <strong>${escape(this.context.pageContext.web.title)}</strong></div>
+        <div>${this.context.pageContext.list?.title}</div>
       </div>
     </section>`;
   }
 
-  protected onInit(): Promise<void> {
+private async test() {
+  const context = this.context;
+  const sp = spfi().using(SPFx(context));
+  
+  // create a new list, passing only the title
+  const listAddResult = await sp.web.lists.add("My new list");
+  
+  // we can work with the list created using the IListAddResult.list property:
+  const r = await listAddResult.list.select("Title")();
+  
+  // log newly created list title to console
+  console.log(r.Title);
+
+}
+
+  protected async onInit(): Promise<void> {
+
+    await this.test();
+
+
+
+
     return this._getEnvironmentMessage().then(message => {
       this._environmentMessage = message;
     });
   }
+
+  // private async ensureCustomList(): Promise<void> {
+  //   try {
+  //     const listTitle = 'YourCustomList';
+
+  //     // Check if the list already exists
+  //     const listExists = await sp.web.lists.getByTitle(listTitle).get();
+
+  //     // If the list doesn't exist, create it
+  //     if (!listExists) {
+  //       const listCreationResult: IListEnsureResult = await sp.web.lists.ensure(listTitle, 'Description of Your Custom List', 100);
+
+  //       // Add other list settings and columns here if needed
+  //       // Example: await listCreationResult.list.fields.addText('YourColumn', { maxLength: 255 });
+  //     }
+  //   } catch (error) {
+  //     console.error('Error ensuring custom list:', error);
+  //   }
+  // }
 
 
 
