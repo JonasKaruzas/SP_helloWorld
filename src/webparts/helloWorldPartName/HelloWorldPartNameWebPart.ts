@@ -13,9 +13,7 @@ import * as strings from 'HelloWorldPartNameWebPartStrings';
 import { SPFx, spfi } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
-
-
-
+import "@pnp/sp/fields";
 
 
 export interface IHelloWorldPartNameWebPartProps {
@@ -46,25 +44,95 @@ export default class HelloWorldPartNameWebPart extends BaseClientSideWebPart<IHe
     </section>`;
   }
 
-private async test() {
-  const context = this.context;
-  const sp = spfi().using(SPFx(context));
+  private async createList(): Promise<void> {
+    const context = this.context;
+    const sp = spfi().using(SPFx(context));
   
-  // create a new list, passing only the title
-  const listAddResult = await sp.web.lists.add("My new list");
-  
-  // we can work with the list created using the IListAddResult.list property:
-  const r = await listAddResult.list.select("Title")();
-  
-  // log newly created list title to console
-  console.log(r.Title);
+    try {
+      const listTitle = 'JK_Supply_RequestTypes2';
+      const listExists = await sp.web.lists.getByTitle(listTitle)
 
-}
+      // const newList = await sp.web.lists.add('kuku3')
+      // await newList.list.fields.addText('Display Order', { MaxLength: 255 });
+      await sp.web.lists.getByTitle("kuku3").fields.addText("My Field", { MaxLength: 255 });
+
+      // create a new text field called 'My Field' in web.
+      // const field: IFieldAddResult = await sp.web.fields.addText("My Field", { MaxLength: 255, Group: "My Group" });
+      // create a new text field called 'My Field' in the list 'My List'.
+      // const field2: IFieldAddResult = await sp.web.lists.getByTitle("My List").fields.addText("My Field", { MaxLength: 255, Group: "My Group" });
+
+
+      console.log(listExists)
+      // console.log(newList);
+      
+
+      if (!listExists) {
+        console.log('1')
+        const listCreationResult = await sp.web.lists.ensure(listTitle);
+        
+        await listCreationResult.list.fields.addText('Display Order', { MaxLength: 255 });
+        
+      }
+    } catch (error) {
+      console.log('2')
+      console.error('Error ensuring custom list:', error);
+    }
+  
+  }
+
+
+  // private async test(): Promise<void> {
+  // const context = this.context;
+  // const sp = spfi().using(SPFx(context));
+  
+ 
+//   const listEnsureResult = await sp.web.lists.ensure("My new list");
+
+// // check if the list was created, or if it already existed:
+// if (listEnsureResult.created) {
+//   console.log("My List was created!");
+// } else {
+//   console.log("My List already existed!");
+  
+//   const updateProperties = {
+//     Description: "This list title and description has been updated using PnPjs.",
+//     Title: "Updated title",
+// };
+
+//   // create a new list, passing only the title
+//   // const listAddResult = await sp.web.lists.add("My new list");
+  
+//   // // we can work with the list created using the IListAddResult.list property:
+//   const list = await sp.web.lists.select("Title")();
+  
+//   // // log newly created list title to console
+//   // console.log(r.Title);
+
+// // const r = await list.select("Title")();
+
+// // list.update(updateProperties).then(async (l: IListUpdateResult) => {
+
+//   // get the updated title and description
+//   const r = await l.list.select("Title", "Description")();
+
+//   // log the updated properties to the console
+//   console.log(r.Title);
+//   console.log(r.Description);
+
+// }
+
+// // work on the created/updated list
+// const r = await listEnsureResult.list.select("Id")();
+
+// // log the Id
+// console.log(r.Id);
+
+// }
 
   protected async onInit(): Promise<void> {
 
-    await this.test();
-
+    // await this.test();
+    await this.createList()
 
 
 
@@ -74,18 +142,21 @@ private async test() {
   }
 
   // private async ensureCustomList(): Promise<void> {
+  //   const context = this.context;
+  //   const sp = spfi().using(SPFx(context));
+
   //   try {
   //     const listTitle = 'YourCustomList';
 
   //     // Check if the list already exists
-  //     const listExists = await sp.web.lists.getByTitle(listTitle).get();
+  //     const listExists = await sp.web.lists.getByTitle(listTitle);
 
   //     // If the list doesn't exist, create it
   //     if (!listExists) {
-  //       const listCreationResult: IListEnsureResult = await sp.web.lists.ensure(listTitle, 'Description of Your Custom List', 100);
+  //       const listCreationResult = await sp.web.lists.ensure(listTitle, 'Description of Your Custom List', 100);
 
   //       // Add other list settings and columns here if needed
-  //       // Example: await listCreationResult.list.fields.addText('YourColumn', { maxLength: 255 });
+  //       await listCreationResult.list.fields.addText('YourColumn', { maxLength: 255 });
   //     }
   //   } catch (error) {
   //     console.error('Error ensuring custom list:', error);
